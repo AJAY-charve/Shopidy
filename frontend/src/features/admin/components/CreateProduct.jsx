@@ -40,6 +40,40 @@ const CreateProduct = () => {
   const navigate = useNavigate();
   const [uploadingCount, setUploadingCount] = useState(0);
 
+  // const handleImageUpload = async (files, setFieldValue, currentImages) => {
+  //   if (!files.length) return;
+
+  //   const remaining = MAX_IMAGES - currentImages.length;
+  //   if (remaining <= 0) {
+  //     toast.error("❌ Maximum 4 images allowed");
+  //     return;
+  //   }
+
+  //   const filesToUpload = Array.from(files).slice(0, remaining);
+
+  //   for (let file of filesToUpload) {
+  //     const formData = new FormData();
+  //     formData.append("image", file);
+
+  //     try {
+  //       setUploadingCount((c) => c + 1);
+  //       const { data } = await axios.post(
+  //         `${import.meta.env.VITE_BACKEND_URL}/api/upload`,
+  //         formData,
+  //         { headers: { "Content-Type": "multipart/form-data" } }
+  //       );
+  //       setFieldValue("images", [
+  //         ...currentImages,
+  //         { url: data.imageUrl, altText: "" },
+  //       ]);
+  //     } catch (error) {
+  //       toast.error("❌ Image upload failed");
+  //     } finally {
+  //       setUploadingCount((c) => c - 1);
+  //     }
+  //   }
+  // };
+
   const handleImageUpload = async (files, setFieldValue, currentImages) => {
     if (!files.length) return;
 
@@ -51,21 +85,26 @@ const CreateProduct = () => {
 
     const filesToUpload = Array.from(files).slice(0, remaining);
 
+    let updatedImages = [...currentImages];
+
     for (let file of filesToUpload) {
       const formData = new FormData();
       formData.append("image", file);
 
       try {
         setUploadingCount((c) => c + 1);
+
         const { data } = await axios.post(
           `${import.meta.env.VITE_BACKEND_URL}/api/upload`,
           formData,
-          { headers: { "Content-Type": "multipart/form-data" } }
         );
-        setFieldValue("images", [
-          ...currentImages,
-          { url: data.imageUrl, altText: "" },
-        ]);
+
+        updatedImages.push({
+          url: data.imageUrl,
+          altText: "",
+        });
+
+        setFieldValue("images", updatedImages);
       } catch (error) {
         toast.error("❌ Image upload failed");
       } finally {
@@ -288,7 +327,7 @@ const CreateProduct = () => {
                         } else {
                           setFieldValue(
                             "sizes",
-                            values.sizes.filter((x) => x !== s)
+                            values.sizes.filter((x) => x !== s),
                           );
                         }
                       }}
@@ -319,7 +358,7 @@ const CreateProduct = () => {
                         } else {
                           setFieldValue(
                             "colors",
-                            values.colors.filter((x) => x !== c)
+                            values.colors.filter((x) => x !== c),
                           );
                         }
                       }}
@@ -358,7 +397,7 @@ const CreateProduct = () => {
                     handleImageUpload(
                       e.target.files,
                       setFieldValue,
-                      values.images
+                      values.images,
                     )
                   }
                   disabled={values.images.length >= MAX_IMAGES}
@@ -385,7 +424,7 @@ const CreateProduct = () => {
                       onClick={() =>
                         setFieldValue(
                           "images",
-                          values.images.filter((_, i) => i !== index)
+                          values.images.filter((_, i) => i !== index),
                         )
                       }
                       className="absolute -top-2 -right-2 bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center"

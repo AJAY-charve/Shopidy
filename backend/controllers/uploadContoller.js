@@ -12,6 +12,7 @@ cloudinary.config({
 
 // Upload an image to Cloudinary
 const uploadImage = async (req, res) => {
+
     try {
         if (!req.file) {
             return res.status(400).json({ message: "No file uploaded" })
@@ -20,7 +21,7 @@ const uploadImage = async (req, res) => {
         const streamUpload = (buffer) => {
             return new Promise((resolve, reject) => {
                 const stream = cloudinary.uploader.upload_stream(
-                    { folder: "fashion-store" },
+                    { folder: "Shopidy" },
                     (error, result) => {
                         if (result) resolve(result)
                         else reject(error)
