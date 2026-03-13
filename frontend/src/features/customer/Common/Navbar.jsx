@@ -19,7 +19,7 @@ const Navbar = () => {
 
   const cartItemCount = cart?.products?.reduce(
     (total, item) => total + item.quantity,
-    0
+    0,
   );
 
   return (
@@ -29,7 +29,7 @@ const Navbar = () => {
         <div className="container mx-auto flex items-center justify-between px-4 py-3 md:py-4">
           {/* Logo */}
           <Link to="/" className="text-xl md:text-2xl font-semibold">
-            FashionStore
+            Shopidy
           </Link>
 
           {/* Desktop Menu */}
