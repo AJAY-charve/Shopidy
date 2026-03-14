@@ -1,5 +1,5 @@
-import React from "react";
 import { HiOutlineTrash } from "react-icons/hi";
+import { FiMinus, FiPlus } from "react-icons/fi";
 import { useDispatch } from "react-redux";
 import {
   removeFromCart,
@@ -9,8 +9,14 @@ import {
 const CartContents = ({ cart, userId }) => {
   const dispatch = useDispatch();
 
-  const handleAddToCart = (productId, delta, quantity, size, color) => {
-    const newQuantity = quantity + delta;
+  const handleUpdateQuantity = (
+    productId,
+    delta,
+    currentQuantity,
+    size,
+    color,
+  ) => {
+    const newQuantity = currentQuantity + delta;
     if (newQuantity >= 1) {
       dispatch(
         updateCartItemQuantity({
@@ -24,78 +30,124 @@ const CartContents = ({ cart, userId }) => {
     }
   };
 
-  const handleRemoveFromCart = async (productId, size, color) => {
+  const handleRemoveFromCart = (productId, size, color) => {
     dispatch(removeFromCart({ productId, userId, size, color }));
   };
 
+  if (!cart?.products?.length) return null;
+
   return (
-    <div className="space-y-4">
-      {cart.products.map((product, index) => (
+    <div className="space-y-6">
+      {cart.products.map((item) => (
         <div
-          key={index}
-          className="flex justify-between items-start gap-4 border-b pb-4"
+          key={`${item.productId}-${item.size}-${item.color}`}
+          className="flex gap-4 group relative bg-white rounded-lg hover:shadow-md transition-shadow p-2"
         >
-          <div className="flex gap-4 items-start">
+          {/* Product Image */}
+          <div className="relative w-24 h-28 rounded-lg overflow-hidden bg-gray-100 flex-shrink-0">
             <img
-              src={product.image}
-              alt={product.name}
-              className="w-20 h-24 object-cover rounded"
+              src={item.image}
+              alt={item.name}
+              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
             />
-            <div className="flex flex-col justify-between">
-              <h3 className="font-medium">{product.name}</h3>
-              <p className="text-sm text-gray-500">
-                size: {product.size} | color: {product.color}
-              </p>
-              <div className="flex items-center mt-2">
+          </div>
+
+          {/* Product Details */}
+          <div className="flex-1">
+            <div className="flex justify-between items-start">
+              <div>
+                <h3 className="font-medium text-gray-900 hover:text-amber-600 transition-colors line-clamp-1">
+                  {item.name}
+                </h3>
+                <p className="text-sm text-gray-500 mt-1">
+                  Size:{" "}
+                  <span className="font-medium text-gray-700">{item.size}</span>{" "}
+                  | Color:{" "}
+                  <span className="font-medium text-gray-700 capitalize">
+                    {item.color}
+                  </span>
+                </p>
+              </div>
+              <button
+                onClick={() =>
+                  handleRemoveFromCart(item.productId, item.size, item.color)
+                }
+                className="text-gray-400 hover:text-red-500 transition-colors p-1"
+                aria-label="Remove item"
+              >
+                <HiOutlineTrash className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Price and Quantity */}
+            <div className="flex items-end justify-between mt-3">
+              <div className="flex items-center border border-gray-200 rounded-lg">
                 <button
                   onClick={() =>
-                    handleAddToCart(
-                      product.productId,
+                    handleUpdateQuantity(
+                      item.productId,
                       -1,
-                      product.quantity,
-                      product.size,
-                      product.color,
+                      item.quantity,
+                      item.size,
+                      item.color,
                     )
                   }
-                  className="border rounded px-2 py-1 text-lg font-medium hover:bg-gray-100 transition"
+                  className="px-3 py-2 hover:bg-gray-50 transition-colors disabled:opacity-50"
+                  disabled={item.quantity <= 1}
+                  aria-label="Decrease quantity"
                 >
-                  -
+                  <FiMinus
+                    className={`w-3 h-3 ${item.quantity <= 1 ? "text-gray-300" : "text-gray-600"}`}
+                  />
                 </button>
-                <span className="mx-3">{product.quantity}</span>
+                <span className="w-10 text-center font-medium text-gray-700">
+                  {item.quantity}
+                </span>
                 <button
                   onClick={() =>
-                    handleAddToCart(
-                      product.productId,
+                    handleUpdateQuantity(
+                      item.productId,
                       1,
-                      product.quantity,
-                      product.size,
-                      product.color,
+                      item.quantity,
+                      item.size,
+                      item.color,
                     )
                   }
-                  className="border rounded px-2 py-1 text-lg font-medium hover:bg-gray-100 transition"
+                  className="px-3 py-2 hover:bg-gray-50 transition-colors"
+                  aria-label="Increase quantity"
                 >
-                  +
+                  <FiPlus className="w-3 h-3 text-gray-600" />
                 </button>
+              </div>
+              <div className="text-right">
+                <span className="text-lg font-bold text-gray-900">
+                  ${(item.price * item.quantity).toLocaleString()}
+                </span>
+                <p className="text-xs text-gray-500">
+                  ${item.price.toLocaleString()} each
+                </p>
               </div>
             </div>
           </div>
-          <div className="flex flex-col items-end">
-            <p className="font-semibold">$ {product.price.toLocaleString()}</p>
-            <button
-              onClick={() =>
-                handleRemoveFromCart(
-                  product.productId,
-                  product.size,
-                  product.color,
-                )
-              }
-              className="mt-2 hover:text-red-700 transition"
-            >
-              <HiOutlineTrash className="h-6 w-6 text-red-600" />
-            </button>
-          </div>
         </div>
       ))}
+
+      {/* Cart Total */}
+      <div className="border-t pt-4 mt-4">
+        <div className="flex justify-between text-sm mb-2">
+          <span className="text-gray-600">Subtotal</span>
+          <span className="font-medium text-gray-900">
+            $
+            {cart.products
+              .reduce((sum, item) => sum + item.price * item.quantity, 0)
+              .toFixed(2)}
+          </span>
+        </div>
+        <div className="flex justify-between text-sm">
+          <span className="text-gray-600">Shipping</span>
+          <span className="font-medium text-green-600">Free</span>
+        </div>
+      </div>
     </div>
   );
 };
