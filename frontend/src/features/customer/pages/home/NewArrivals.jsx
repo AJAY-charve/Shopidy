@@ -1,44 +1,42 @@
 import React, { useEffect, useRef, useState } from "react";
-import { FaAngleLeft } from "react-icons/fa6";
-import { FaAngleRight } from "react-icons/fa6";
+import { FaAngleLeft, FaAngleRight } from "react-icons/fa6";
 import { Link } from "react-router-dom";
 import axios from "axios";
 
 const NewArrivals = () => {
   const scrollRef = useRef(null);
-  const [isDraggin, setIsDragging] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
   const [startX, setStartX] = useState(0);
-  const [scrollLeft, setScrollLeft] = useState(false);
+  const [scrollLeft, setScrollLeft] = useState(0);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(true);
-
   const [newArrivals, setNewArrivals] = useState([]);
 
   useEffect(() => {
     const fetchNewArrivals = async () => {
       try {
         const response = await axios.get(
-          `${import.meta.env.VITE_BACKEND_URL}/api/products/new-arrivals`
+          `${import.meta.env.VITE_BACKEND_URL}/api/products/new-arrivals`,
         );
         setNewArrivals(response.data);
       } catch (error) {
         console.log(error);
       }
     };
-
     fetchNewArrivals();
   }, []);
 
   const handleMouseDown = (e) => {
     setIsDragging(true);
     setStartX(e.pageX - scrollRef.current.offsetLeft);
-    setScrollLeft(scrollLeft.current.scrollLeft);
+    setScrollLeft(scrollRef.current.scrollLeft);
   };
 
   const handleMouseMove = (e) => {
-    if (!isDraggin) return;
+    if (!isDragging) return;
+    e.preventDefault();
     const x = e.pageX - scrollRef.current.offsetLeft;
-    const walk = x - startX;
+    const walk = (x - startX) * 2;
     scrollRef.current.scrollLeft = scrollLeft - walk;
   };
 
@@ -47,19 +45,17 @@ const NewArrivals = () => {
   };
 
   const scroll = (direction) => {
-    const scrollAmount = direction === "left" ? -300 : 300;
-    scrollRef.current.scrollBy({ left: scrollAmount, behaviour: "smooth" });
+    const scrollAmount = direction === "left" ? -400 : 400;
+    scrollRef.current.scrollBy({ left: scrollAmount, behavior: "smooth" });
   };
 
   const updateScrollButtons = () => {
     const container = scrollRef.current;
-
     if (container) {
-      const leftScroll = container.scrollLeft;
-      const rightScrollable =
-        container.scrollWidth + leftScroll + container.clientWidth;
-      setCanScrollLeft(leftScroll > 0);
-      setCanScrollRight(rightScrollable);
+      setCanScrollLeft(container.scrollLeft > 0);
+      setCanScrollRight(
+        container.scrollWidth > container.scrollLeft + container.clientWidth,
+      );
     }
   };
 
@@ -73,76 +69,93 @@ const NewArrivals = () => {
   }, [newArrivals]);
 
   return (
-    <section className="py-16 px-4 lg:px-0">
-      <div
-        className={`container mx-auto text-center mb-10 relative ${
-          isDraggin ? "cursor-grabbing " : "cursor-grab"
-        }`}
-      >
-        <h2 className="text-3xl font-bold mb-4">Explore New Arrivals</h2>
-        <p className="text-lg text-gray-600 mb-8">
-          Discover this latest styles straight off the runway. freshly added to
-          keep your wordrobe on the cutting edge of fashion.
-        </p>
-
-        {/* Scroll button */}
-        <div className="absolute right-0 bottom-[-30px] flex space-x-2">
-          <button
-            onClick={() => scroll("left")}
-            className={`p-2 rounded border ${
-              canScrollLeft
-                ? "bg-white text-black"
-                : "bg-gray-200 text-gray-400 cursor-not-allowed"
-            }`}
-            disabled={!canScrollLeft}
-          >
-            <FaAngleLeft className="text-2xl " />
-          </button>
-          <button
-            onClick={() => scroll("right")}
-            className={`p-2 rounded border ${
-              canScrollRight
-                ? "bg-white text-black"
-                : "bg-gray-200 text-gray-400 cursor-not-allowed"
-            }`}
-            disabled={!canScrollRight}
-          >
-            <FaAngleRight className="text-2xl " />
-          </button>
+    <section className="py-16 px-4 lg:px-0 bg-gray-50">
+      <div className="container mx-auto">
+        {/* Header */}
+        <div className="text-center mb-12">
+          <h2 className="text-4xl font-bold mb-4">New Arrivals</h2>
+          <p className="text-gray-600 max-w-2xl mx-auto">
+            Discover the latest styles added this week. Fresh pieces to elevate
+            your wardrobe.
+          </p>
         </div>
-      </div>
 
-      {/* Scrollable Contaner */}
-      <div
-        ref={scrollRef}
-        onMouseDown={handleMouseDown}
-        onMouseMove={handleMouseMove}
-        onMouseUp={handleMouseUpOrLeave}
-        onMouseLeave={handleMouseUpOrLeave}
-        className="container mx-auto overflow-x-scroll flex space-x-6 relative"
-      >
-        {newArrivals.map((product, index) => (
-          <div
-            key={product._id}
-            className="min-w-[100%] sm:min-w-[50%] lg:w-[30%] relative"
-          >
-            <img
-              src={product.images[0]?.url}
-              alt={product.images[0].altText || product.name}
-              className="w-full h-[500px] object-cover rounded-lg"
-              draggable="false"
-            />
-            <div
-              className="absolute bottom-0 right-0 left-0 opacity-50 backdrop:blur-md
-             text-white p-4 rounded-b-lg"
+        {/* Scroll Container */}
+        <div className="relative">
+          {/* Scroll Buttons */}
+          <div className="absolute -top-16 right-0 flex gap-2">
+            <button
+              onClick={() => scroll("left")}
+              className={`p-3 rounded-full transition-all ${
+                canScrollLeft
+                  ? "bg-gray-900 text-white hover:bg-amber-500"
+                  : "bg-gray-200 text-gray-400 cursor-not-allowed"
+              }`}
+              disabled={!canScrollLeft}
             >
-              <Link to={`/product/${product._id}`} className="block">
-                <h4 className="font-medium">{product.name}</h4>
-                <p className="mt-2">${product.price}</p>
-              </Link>
-            </div>
+              <FaAngleLeft className="text-xl" />
+            </button>
+            <button
+              onClick={() => scroll("right")}
+              className={`p-3 rounded-full transition-all ${
+                canScrollRight
+                  ? "bg-gray-900 text-white hover:bg-amber-500"
+                  : "bg-gray-200 text-gray-400 cursor-not-allowed"
+              }`}
+              disabled={!canScrollRight}
+            >
+              <FaAngleRight className="text-xl" />
+            </button>
           </div>
-        ))}
+
+          {/* Products */}
+          <div
+            ref={scrollRef}
+            onMouseDown={handleMouseDown}
+            onMouseMove={handleMouseMove}
+            onMouseUp={handleMouseUpOrLeave}
+            onMouseLeave={handleMouseUpOrLeave}
+            className={`overflow-x-auto flex gap-6 pb-4 hide-scrollbar ${
+              isDragging ? "cursor-grabbing" : "cursor-grab"
+            }`}
+          >
+            {newArrivals.map((product, index) => (
+              <Link
+                key={product._id}
+                to={`/product/${product._id}`}
+                className="min-w-[280px] sm:min-w-[320px] group"
+              >
+                <div className="relative overflow-hidden rounded-lg bg-gray-100">
+                  {/* Image */}
+                  <img
+                    src={product.images[0]?.url}
+                    alt={product.name}
+                    className="w-full h-[400px] object-cover group-hover:scale-105 transition-transform duration-500"
+                    draggable="false"
+                  />
+
+                  {/* New Badge */}
+                  {index < 3 && (
+                    <span className="absolute top-4 left-4 bg-amber-500 text-white text-xs font-bold px-3 py-1 rounded-full">
+                      NEW
+                    </span>
+                  )}
+
+                  {/* Hover Overlay */}
+                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all duration-300"></div>
+                </div>
+
+                {/* Product Info */}
+                <div className="mt-4 text-center">
+                  <h3 className="font-medium text-gray-900 group-hover:text-amber-600 transition-colors">
+                    {product.name}
+                  </h3>
+                  <p className="text-lg font-bold mt-1">${product.price}</p>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </div>
       </div>
     </section>
   );

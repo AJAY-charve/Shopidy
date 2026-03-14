@@ -1,16 +1,17 @@
 import {
   FaBoxOpen,
   FaClipboardList,
-  FaSignHanging,
+  FaSignOutAlt,
   FaStore,
   FaUser,
-} from "react-icons/fa6";
+  FaHome,
+} from "react-icons/fa";
 import { useDispatch } from "react-redux";
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import { logout } from "../../../redux/slice/authSlice";
 import { clearCart } from "../../../redux/slice/cartSlice";
 
-const AdminSidebar = () => {
+const AdminSidebar = ({ closeSidebar }) => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
@@ -20,68 +21,57 @@ const AdminSidebar = () => {
     navigate("/");
   };
 
+  const menuItems = [
+    { path: "/admin", label: "Dashboard", icon: FaHome },
+    { path: "/admin/users", label: "Users", icon: FaUser },
+    { path: "/admin/products", label: "Products", icon: FaBoxOpen },
+    { path: "/admin/orders", label: "Orders", icon: FaClipboardList },
+    { path: "/", label: "Visit Shop", icon: FaStore },
+  ];
+
   return (
-    <div className="p-6 ">
-      <div className="mb-6">
-        <Link to={`/admin`} className="text-2xl font-medium">
+    <div className="h-full flex flex-col">
+      {/* Logo */}
+      <div className="p-6 border-b border-gray-800">
+        <Link
+          to="/admin"
+          onClick={closeSidebar}
+          className="text-2xl font-bold bg-gradient-to-r from-amber-400 to-amber-500 bg-clip-text text-transparent"
+        >
           Shopidy
         </Link>
+        <p className="text-xs text-gray-500 mt-1">Admin Panel</p>
       </div>
-      <h2 className="text-xl font-medium mb-6 text-center">Admin Dashboard</h2>
 
-      <nav className="flex flex-col space-y-2">
-        <NavLink
-          to={"/admin/users"}
-          className={({ isActive }) =>
-            isActive
-              ? "bg-gray-700 text-white py-3 px-4 rounded flex items-center space-x-2"
-              : "text-gray-300 hover:bg-gray-700 hover:text-white py-3 px-4 rounded flex items-center space-x-2"
-          }
-        >
-          <FaUser />
-          <span>Users</span>
-        </NavLink>
-        <NavLink
-          to={"/admin/products"}
-          className={({ isActive }) =>
-            isActive
-              ? "bg-gray-700 text-white py-3 px-4 rounded flex items-center space-x-2"
-              : "text-gray-300 hover:bg-gray-700 hover:text-white py-3 px-4 rounded flex items-center space-x-2"
-          }
-        >
-          <FaBoxOpen />
-          <span>Products</span>
-        </NavLink>
-        <NavLink
-          to={"/admin/orders"}
-          className={({ isActive }) =>
-            isActive
-              ? "bg-gray-700 text-white py-3 px-4 rounded flex items-center space-x-2"
-              : "text-gray-300 hover:bg-gray-700 hover:text-white py-3 px-4 rounded flex items-center space-x-2"
-          }
-        >
-          <FaClipboardList />
-          <span>Orders</span>
-        </NavLink>
-        <NavLink
-          to={"/"}
-          className={({ isActive }) =>
-            isActive
-              ? "bg-gray-700 text-white py-3 px-4 rounded flex items-center space-x-2"
-              : "text-gray-300 hover:bg-gray-700 hover:text-white py-3 px-4 rounded flex items-center space-x-2"
-          }
-        >
-          <FaStore />
-          <span>Shop</span>
-        </NavLink>
+      {/* Navigation */}
+      <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
+        {menuItems.map(({ path, label, icon: Icon }) => (
+          <NavLink
+            key={path}
+            to={path}
+            onClick={closeSidebar}
+            className={({ isActive }) =>
+              `flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${
+                isActive
+                  ? "bg-amber-500 text-white shadow-md"
+                  : "text-gray-400 hover:bg-gray-800 hover:text-white"
+              }`
+            }
+          >
+            <Icon className="text-lg" />
+            <span className="text-sm font-medium">{label}</span>
+          </NavLink>
+        ))}
       </nav>
-      <div className="mt-6">
+
+      {/* Logout Button */}
+      <div className="p-4 border-t border-gray-800">
         <button
           onClick={handleLogout}
-          className="w-full bg-red-500 hover:bg-red-600 text-white py-2 px-4 rounded flex items-center justify-center space-x-2"
+          className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-gray-400 hover:bg-red-600 hover:text-white transition-all"
         >
-          <FaSignHanging />
-          <span>Logout</span>
+          <FaSignOutAlt className="text-lg" />
+          <span className="text-sm font-medium">Logout</span>
         </button>
       </div>
     </div>

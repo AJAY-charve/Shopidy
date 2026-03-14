@@ -10,6 +10,8 @@ import {
 import { addToCart } from "../../../../redux/slice/cartSlice";
 import Loading from "../../../components/common/Loading";
 import Error from "../../../components/common/Error";
+import { FaShoppingCart, FaHeart, FaShare, FaCheck } from "react-icons/fa";
+import { FiMinus, FiPlus } from "react-icons/fi";
 
 const ProductDetails = ({ productId }) => {
   const { id } = useParams();
@@ -26,6 +28,7 @@ const ProductDetails = ({ productId }) => {
   const [selectedColor, setSelectedColor] = useState("");
   const [quantity, setQuantity] = useState(1);
   const [isButtonDisabled, setIsButtonDisabled] = useState(false);
+  const [isWishlist, setIsWishlist] = useState(false);
 
   const productFetchId = productId || id;
 
@@ -39,6 +42,18 @@ const ProductDetails = ({ productId }) => {
   useEffect(() => {
     if (selectedProduct?.images?.length) {
       setMainImage(selectedProduct.images[0].url);
+    }
+  }, [selectedProduct]);
+
+  useEffect(() => {
+    if (selectedProduct) {
+      if (selectedProduct.colors?.length > 0) {
+        setSelectedColor(selectedProduct.colors[0]);
+      }
+
+      if (selectedProduct.sizes?.length > 0) {
+        setSelectedSize(selectedProduct.sizes[0]);
+      }
     }
   }, [selectedProduct]);
 
@@ -76,168 +91,285 @@ const ProductDetails = ({ productId }) => {
   if (error) return <Error />;
 
   return (
-    <div className="p-">
+    <div className="bg-gray-50 min-h-screen ">
       {selectedProduct && (
-        <div className="max-w-6xl mx-auto bg-white p-8 rounded-lg">
-          <div className="flex flex-col md:flex-row">
-            {/* Desktop thumbnails */}
-            <div className="hidden md:flex flex-col space-y-4 mr-6">
-              {selectedProduct.images?.map((image, index) => (
-                <img
-                  key={index}
-                  src={image.url}
-                  alt={image.altText || `Thumbnail ${index}`}
-                  className={`w-20 h-20 object-cover rounded-lg cursor-pointer border ${
-                    mainImage === image.url ? "border-black" : "border-gray-300"
-                  }`}
-                  onClick={() => setMainImage(image.url)}
-                />
-              ))}
-            </div>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          {/* Breadcrumb */}
+          <div className="text-sm breadcrumbs text-gray-500 mb-6">
+            <span>Home</span> / <span>Products</span> /{" "}
+            <span className="text-gray-900 font-medium">
+              {selectedProduct.name}
+            </span>
+          </div>
 
-            {/* Main image */}
-            <div className="md:w-1/2 mb-4">
-              {mainImage && (
-                <img
-                  src={mainImage}
-                  alt="Main Product"
-                  className="w-full object-cover rounded-lg"
-                />
-              )}
-            </div>
+          <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
+            <div className="flex flex-col lg:flex-row">
+              {/* Image Section - Left */}
+              <div className="lg:w-3/5 p-6 lg:p-8">
+                <div className="flex flex-col-reverse lg:flex-row gap-6">
+                  {/* Thumbnails - Vertical on desktop, horizontal on mobile */}
+                  <div className="flex lg:flex-col gap-3 overflow-x-auto lg:overflow-x-visible pb-2 lg:pb-0">
+                    {selectedProduct.images?.map((image, index) => (
+                      <button
+                        key={index}
+                        onClick={() => setMainImage(image.url)}
+                        className={`flex-shrink-0 w-16 h-16 lg:w-20 lg:h-20 rounded-lg overflow-hidden border-2 transition-all ${
+                          mainImage === image.url
+                            ? "border-amber-500 shadow-md"
+                            : "border-gray-200 hover:border-gray-400"
+                        }`}
+                      >
+                        <img
+                          src={image.url}
+                          alt={image.altText || `Thumbnail ${index}`}
+                          className="w-full h-full object-cover"
+                        />
+                      </button>
+                    ))}
+                  </div>
 
-            {/* Mobile thumbnails */}
-            <div className="md:hidden flex overflow-x-auto space-x-4 mb-4">
-              {selectedProduct.images?.map((image, index) => (
-                <img
-                  key={index}
-                  src={image.url}
-                  alt={image.altText || `Thumbnail ${index}`}
-                  className={`w-20 h-20 object-cover rounded-lg cursor-pointer border ${
-                    mainImage === image.url ? "border-black" : "border-gray-300"
-                  }`}
-                  onClick={() => setMainImage(image.url)}
-                />
-              ))}
-            </div>
+                  {/* Main Image */}
+                  <div className="flex-1">
+                    <div className="relative aspect-square rounded-xl overflow-hidden bg-gray-100">
+                      <img
+                        src={mainImage}
+                        alt={selectedProduct.name}
+                        className="w-full h-full object-cover"
+                      />
 
-            {/* Product Info */}
-            <div className="md:w-1/2 flex flex-col md:ml-10">
-              <h1 className="text-2xl md:text-3xl font-semibold mb-2">
-                {selectedProduct.name}
-              </h1>
+                      {/* Sale Badge */}
+                      {selectedProduct.orignalPrice && (
+                        <span className="absolute top-4 left-4 bg-red-500 text-white px-3 py-1 rounded-full text-sm font-medium">
+                          SALE
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
 
-              <div className="flex items-baseline gap-3 mb-2">
-                {selectedProduct.orignalPrice && (
-                  <p className="text-lg text-gray-500 line-through">
-                    ${selectedProduct.orignalPrice}
-                  </p>
+              {/* Product Info - Right */}
+              <div className="lg:w-2/5 p-6 lg:p-8 border-t lg:border-t-0 lg:border-l border-gray-200">
+                {/* Brand/Availability */}
+                <div className="flex items-center justify-between mb-4">
+                  <span className="text-sm text-amber-600 font-medium">
+                    PREMIUM QUALITY
+                  </span>
+                  <span className="text-sm text-green-600 flex items-center gap-1">
+                    <FaCheck className="text-xs" /> In Stock
+                  </span>
+                </div>
+
+                {/* Title */}
+                <h1 className="text-2xl lg:text-3xl font-bold text-gray-900 mb-4">
+                  {selectedProduct.name}
+                </h1>
+
+                {/* Price */}
+                <div className="flex items-baseline gap-3 mb-6">
+                  {selectedProduct.orignalPrice && (
+                    <span className="text-xl text-gray-400 line-through">
+                      ${selectedProduct.orignalPrice}
+                    </span>
+                  )}
+                  <span className="text-3xl font-bold text-gray-900">
+                    ${selectedProduct.price}
+                  </span>
+                  {selectedProduct.orignalPrice && (
+                    <span className="text-sm text-green-600 font-medium">
+                      Save $
+                      {(
+                        selectedProduct.orignalPrice - selectedProduct.price
+                      ).toFixed(2)}
+                    </span>
+                  )}
+                </div>
+
+                {/* Description */}
+                <p className="text-gray-600 mb-8 leading-relaxed">
+                  {selectedProduct.description}
+                </p>
+
+                {/* Colors */}
+                {selectedProduct.colors?.length > 0 && (
+                  <div className="mb-6">
+                    <div className="flex items-center justify-between mb-3">
+                      <span className="font-medium text-gray-900">Color</span>
+                      <span className="text-sm text-gray-500">
+                        {selectedColor}
+                      </span>
+                    </div>
+                    <div className="flex gap-3">
+                      {selectedProduct.colors.map((color) => (
+                        <button
+                          key={color}
+                          onClick={() => setSelectedColor(color)}
+                          className={`group relative`}
+                        >
+                          <div
+                            className={`w-10 h-10 rounded-full border-2 transition-all ${
+                              selectedColor === color
+                                ? "border-amber-500 scale-110"
+                                : "border-gray-300 hover:border-gray-400"
+                            }`}
+                            style={{
+                              backgroundColor: color.toLowerCase(),
+                              boxShadow:
+                                selectedColor === color
+                                  ? "0 4px 6px -1px rgba(0,0,0,0.1)"
+                                  : "none",
+                            }}
+                          />
+                          {selectedColor === color && (
+                            <span className="absolute -top-1 -right-1 w-4 h-4 bg-amber-500 rounded-full border-2 border-white"></span>
+                          )}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
                 )}
-                <p className="text-xl font-semibold">
-                  ${selectedProduct.price}
+
+                {/* Sizes */}
+                {selectedProduct.sizes?.length > 0 && (
+                  <div className="mb-6">
+                    <div className="flex items-center justify-between mb-3">
+                      <span className="font-medium text-gray-900">Size</span>
+                      <button className="text-sm text-amber-600 hover:underline">
+                        Size Guide
+                      </button>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      {selectedProduct.sizes.map((size) => (
+                        <button
+                          key={size}
+                          onClick={() => setSelectedSize(size)}
+                          className={`min-w-[48px] px-4 py-2 rounded-lg border font-medium transition-all ${
+                            selectedSize === size
+                              ? "border-amber-500 bg-amber-50 text-amber-700"
+                              : "border-gray-300 text-gray-700 hover:border-gray-400"
+                          }`}
+                        >
+                          {size}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Quantity */}
+                <div className="mb-8">
+                  <span className="font-medium text-gray-900 block mb-3">
+                    Quantity
+                  </span>
+                  <div className="flex items-center gap-4">
+                    <div className="flex items-center border border-gray-300 rounded-lg">
+                      <button
+                        onClick={() => handleQuantityChange("minus")}
+                        className="px-4 py-2 hover:bg-gray-100 transition-colors"
+                        disabled={quantity <= 1}
+                      >
+                        <FiMinus
+                          className={quantity <= 1 ? "text-gray-300" : ""}
+                        />
+                      </button>
+                      <span className="w-12 text-center font-medium">
+                        {quantity}
+                      </span>
+                      <button
+                        onClick={() => handleQuantityChange("plus")}
+                        className="px-4 py-2 hover:bg-gray-100 transition-colors"
+                      >
+                        <FiPlus />
+                      </button>
+                    </div>
+                    <span className="text-sm text-gray-500">
+                      {selectedProduct.stock} available
+                    </span>
+                  </div>
+                </div>
+
+                {/* Action Buttons */}
+                <div className="flex gap-3 mb-6">
+                  <button
+                    onClick={handleAddToCart}
+                    disabled={!user || isButtonDisabled}
+                    className={`flex-1 flex items-center justify-center gap-2 py-4 rounded-lg font-medium transition-all ${
+                      !user || isButtonDisabled
+                        ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                        : "bg-gray-900 text-white hover:bg-gray-800 shadow-lg hover:shadow-xl"
+                    }`}
+                  >
+                    <FaShoppingCart />
+                    {!user
+                      ? "Login to Add"
+                      : isButtonDisabled
+                        ? "Adding..."
+                        : "Add to Cart"}
+                  </button>
+
+                  {/* <button
+                    onClick={() => setIsWishlist(!isWishlist)}
+                    className={`p-4 rounded-lg border transition-all ${
+                      isWishlist
+                        ? "border-red-500 text-red-500 bg-red-50"
+                        : "border-gray-300 text-gray-700 hover:border-gray-400"
+                    }`}
+                  >
+                    <FaHeart />
+                  </button> */}
+
+                  {/* <button className="p-4 rounded-lg border border-gray-300 text-gray-700 hover:border-gray-400 transition-all">
+                    <FaShare />
+                  </button> */}
+                </div>
+
+                {/* Additional Info */}
+                <div className="border-t border-gray-200 pt-6">
+                  <div className="grid grid-cols-2 gap-4 text-sm">
+                    <div>
+                      <span className="text-gray-500">SKU:</span>
+                      <span className="ml-2 text-gray-900 font-medium">
+                        {selectedProduct._id.slice(-8)}
+                      </span>
+                    </div>
+                    <div>
+                      <span className="text-gray-500">Category:</span>
+                      <span className="ml-2 text-gray-900 font-medium">
+                        {selectedProduct.category}
+                      </span>
+                    </div>
+                    <div>
+                      <span className="text-gray-500">Material:</span>
+                      <span className="ml-2 text-gray-900 font-medium">
+                        Premium
+                      </span>
+                    </div>
+                    <div>
+                      <span className="text-gray-500">Delivery:</span>
+                      <span className="ml-2 text-gray-900 font-medium">
+                        3-5 Days
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* You May Also Like */}
+          {similarProducts?.length > 0 && (
+            <div className="mt-12 pb-8">
+              <div className="text-center mb-10">
+                <h2 className="text-3xl font-bold text-gray-900 mb-3">
+                  You May Also Like
+                </h2>
+                <p className="text-gray-600">
+                  Discover more styles you might love
                 </p>
               </div>
-
-              <p className="text-gray-600 mb-4">
-                {selectedProduct.description}
-              </p>
-
-              {/* Colors */}
-              <div className="mb-4">
-                <p className="mb-2">Color</p>
-                <div className="flex gap-2">
-                  {selectedProduct.colors?.map((color) => (
-                    <button
-                      key={color}
-                      onClick={() => setSelectedColor(color)}
-                      className={`w-8 h-8 rounded-full border-2 ${
-                        selectedColor === color
-                          ? "border-black"
-                          : "border-gray-300"
-                      }`}
-                      style={{ backgroundColor: color.toLowerCase() }}
-                    />
-                  ))}
-                </div>
-              </div>
-
-              {/* Sizes */}
-              <div className="mb-4">
-                <p className="mb-2">Sizes</p>
-                <div className="flex gap-2 flex-wrap">
-                  {selectedProduct.sizes?.map((size) => (
-                    <button
-                      key={size}
-                      onClick={() => setSelectedSize(size)}
-                      className={`px-4 py-2 border rounded ${
-                        selectedSize === size
-                          ? "bg-black text-white"
-                          : "bg-white"
-                      }`}
-                    >
-                      {size}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Quantity */}
-              <div className="mb-6">
-                <p className="mb-2">Quantity</p>
-                <div className="flex items-center gap-4">
-                  <button
-                    onClick={() => handleQuantityChange("minus")}
-                    className="px-3 py-1 bg-gray-200 rounded"
-                  >
-                    -
-                  </button>
-                  <span>{quantity}</span>
-                  <button
-                    onClick={() => handleQuantityChange("plus")}
-                    className="px-3 py-1 bg-gray-200 rounded"
-                  >
-                    +
-                  </button>
-                </div>
-              </div>
-
-              {/* Add to cart */}
-              {/* <button
-                onClick={handleAddToCart}
-                disabled={isButtonDisabled}
-                className={`w-full py-3 rounded text-white ${
-                  isButtonDisabled
-                    ? "bg-gray-500"
-                    : "bg-black hover:bg-gray-900"
-                }`}
-              >
-                {isButtonDisabled ? "Adding..." : "ADD TO CART"}
-              </button> */}
-
-              <button
-                onClick={handleAddToCart}
-                disabled={!user || isButtonDisabled}
-                className={`w-full py-3 rounded text-white ${
-                  !user || isButtonDisabled
-                    ? "bg-gray-400 cursor-not-allowed"
-                    : "bg-black hover:bg-gray-900"
-                }`}
-              >
-                {!user
-                  ? "Login to Add to Cart"
-                  : isButtonDisabled
-                    ? "Adding..."
-                    : "ADD TO CART"}
-              </button>
+              <ProductGrid products={similarProducts} />
             </div>
-          </div>
-
-          <div className="mt-20">
-            <h2 className="text-2xl text-center font-medium mb-4">
-              You May Also Like
-            </h2>
-            <ProductGrid products={similarProducts} />
-          </div>
+          )}
         </div>
       )}
     </div>
