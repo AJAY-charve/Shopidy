@@ -12,6 +12,7 @@ import Loading from "../../../components/common/Loading";
 import Error from "../../../components/common/Error";
 import { FaShoppingCart, FaHeart, FaShare, FaCheck } from "react-icons/fa";
 import { FiMinus, FiPlus } from "react-icons/fi";
+import { Link } from "react-router-dom";
 
 const ProductDetails = ({ productId }) => {
   const { id } = useParams();
@@ -290,7 +291,7 @@ const ProductDetails = ({ productId }) => {
 
                 {/* Action Buttons */}
                 <div className="flex gap-3 mb-6">
-                  <button
+                  {/* <button
                     onClick={handleAddToCart}
                     disabled={!user || isButtonDisabled}
                     className={`flex-1 flex items-center justify-center gap-2 py-4 rounded-lg font-medium transition-all ${
@@ -305,7 +306,30 @@ const ProductDetails = ({ productId }) => {
                       : isButtonDisabled
                         ? "Adding..."
                         : "Add to Cart"}
-                  </button>
+                  </button> */}
+
+                  {!user ? (
+                    <Link
+                      to="/login"
+                      className="flex-1 flex items-center justify-center gap-2 py-4 rounded-lg font-medium transition-all bg-amber-500 text-white hover:bg-amber-600 shadow-lg hover:shadow-xl"
+                    >
+                      <FaShoppingCart />
+                      Login to Add
+                    </Link>
+                  ) : (
+                    <button
+                      onClick={handleAddToCart}
+                      disabled={isButtonDisabled}
+                      className={`flex-1 flex items-center justify-center gap-2 py-4 rounded-lg font-medium transition-all ${
+                        isButtonDisabled
+                          ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                          : "bg-gray-900 text-white hover:bg-gray-800 shadow-lg hover:shadow-xl"
+                      }`}
+                    >
+                      <FaShoppingCart />
+                      {isButtonDisabled ? "Adding..." : "Add to Cart"}
+                    </button>
+                  )}
 
                   {/* <button
                     onClick={() => setIsWishlist(!isWishlist)}
